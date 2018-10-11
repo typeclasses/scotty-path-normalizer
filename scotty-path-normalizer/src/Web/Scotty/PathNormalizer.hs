@@ -38,13 +38,11 @@ pathNormalizerAction =
             Nothing -> next
             Just x -> return x
 
-    let
-        (normalizedSegments :: [Text], parents, different) =
-            pathNormalize (Text.split (== '/') slashRemoved)
-
-    when (parents > 0) next
-
-    when (not different) next
+    normalizedSegments <-
+        case (pathNormalize (Text.split (== '/') slashRemoved)) of
+            Invalid -> next
+            AlreadyNormal -> next
+            Normalized xs -> return xs
 
     queryText :: Text <-
         case (Text.decodeUtf8' (rawQueryString req)) of
@@ -58,35 +56,43 @@ pathNormalizerAction =
 
     (redirect . LText.fromStrict) redirectUrl
 
+data Result = Invalid | AlreadyNormal | Normalized [Text]
+    deriving Show
+
 -- |
--- A path that's already normalized:
+-- A path that's already in normal form:
 --
 -- >>> pathNormalize [Text.pack "one", Text.pack "two", Text.pack "three"]
--- (["one","two","three"],0,False)
+-- AlreadyNormal
 --
 -- A path that contains empty segments:
 --
 -- >>> pathNormalize [Text.pack "", Text.pack "one", Text.pack ".", Text.pack "two", Text.pack "three"]
--- (["one","two","three"],0,True)
+-- Normalized ["one","two","three"]
 --
 -- A path that goes "up" a directory:
 --
 -- >>> pathNormalize [Text.pack "one", Text.pack "two", Text.pack "three", Text.pack "..", Text.pack "four"]
--- (["one","two","four"],0,True)
+-- Normalized ["one","two","four"]
 --
 -- A path that goes up too far:
 --
 -- >>> pathNormalize [Text.pack "one", Text.pack "..", Text.pack "..", Text.pack "two", Text.pack "three"]
--- (["two","three"],1,True)
+-- Invalid
 --
 -- The empty string is a normalized path:
 --
 -- >>> pathNormalize []
--- ([],0,False)
+-- AlreadyNormal
 
-pathNormalize :: [Text] -> ([Text], Natural, Bool)
-pathNormalize =
-    foldr f ([], 0 :: Natural, False)
+pathNormalize :: [Text] -> Result
+pathNormalize segments =
+
+    case (foldr f ([], 0 :: Natural, False) segments) of
+        (_, _, False) -> AlreadyNormal
+        (xs, 0, _)    -> Normalized xs
+        _             -> Invalid
+
   where
     f x (xs, parents, different)
         | x == Text.pack ""   = (    xs, parents,     True)
@@ -94,4 +100,3 @@ pathNormalize =
         | x == Text.pack ".." = (    xs, parents + 1, True)
         | parents > 0         = (    xs, parents - 1, True)
         | otherwise           = (x : xs, parents,     different)
-
