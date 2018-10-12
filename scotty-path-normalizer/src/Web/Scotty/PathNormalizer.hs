@@ -1,7 +1,12 @@
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Web.Scotty.PathNormalizer where
+module Web.Scotty.PathNormalizer
+    ( addPathNormalizer
+    , pathNormalizerAction
+    , Result (..)
+    , pathNormalize
+    ) where
 
 import Control.Monad
 import Data.Bool
