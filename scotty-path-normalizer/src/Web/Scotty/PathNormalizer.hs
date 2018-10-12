@@ -44,8 +44,15 @@ up    = T.pack ".."
 anyPath :: RoutePattern
 anyPath = function (const (Just []))
 
+-- | Adds a Scotty route that matches all non-normalized paths,
+-- where the action redirects to the corresponding normalized path.
+
 addPathNormalizer :: ScottyM ()
 addPathNormalizer = get anyPath pathNormalizerAction
+
+-- | A Scotty action which issues a redirect to the normalized
+-- form of the request target, or aborts (with 'next') if the
+-- request target is already a normal path.
 
 pathNormalizerAction :: ActionM ()
 pathNormalizerAction =
