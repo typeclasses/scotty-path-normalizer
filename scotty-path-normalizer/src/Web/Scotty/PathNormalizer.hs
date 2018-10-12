@@ -47,27 +47,26 @@ addPathNormalizer = get anyPath pathNormalizerAction
 pathNormalizerAction :: ActionM ()
 pathNormalizerAction =
   do
-    req :: Request <- request
+    req   :: Request  <- request
+    path  :: Text     <- decodeUtf8 (rawPathInfo req)
+    query :: Text     <- decodeUtf8 (rawQueryString req)
+    path' :: Text     <- normalize path
 
-    let
-        bs :: ByteString = rawPathInfo req
+    redirect (LT.fromStrict (path' `T.append` query))
 
-    path :: Text <-
-        case T.decodeUtf8' bs of
+  where
+    decodeUtf8 :: ByteString -> ActionM Text
+    decodeUtf8 bs =
+        case (T.decodeUtf8' bs) of
             Left _  -> next
             Right x -> return x
 
-    path' :: Text <- case (normalizePath path) of
-        Invalid       -> next
-        AlreadyNormal -> next
-        Normalized x  -> return x
-
-    queryText :: Text <-
-        case (T.decodeUtf8' (rawQueryString req)) of
-            Left _  -> next
-            Right x -> return x
-
-    redirect (LT.fromStrict (path' `T.append` queryText))
+    normalize :: Text -> ActionM Text
+    normalize path =
+        case (normalizePath path) of
+            Invalid       -> next
+            AlreadyNormal -> next
+            Normalized x  -> return x
 
 data NormalizationResult a = Invalid | AlreadyNormal | Normalized a
     deriving (Functor, Show)
