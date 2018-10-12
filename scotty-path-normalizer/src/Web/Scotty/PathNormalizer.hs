@@ -3,8 +3,11 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Web.Scotty.PathNormalizer
-    ( addPathNormalizer
+    (
+    -- * Scotty action
+      addPathNormalizer
     , pathNormalizerAction
+    -- * Normalization implementation
     , NormalizationResult (..)
     , normalizePath
     , normalizeSegmentList
@@ -74,32 +77,33 @@ data NormalizationResult a = Invalid | AlreadyNormal | Normalized a
 -- |
 -- A path that's already in normal form:
 --
--- >>> normalizePath (T.pack "/one/two/three")
+-- >>> normalizePath "/one/two/three"
 -- AlreadyNormal
 --
 -- A path that contains empty segments:
 --
--- >>> normalizePath (T.pack "//one/./two/three/")
+-- >>> normalizePath "//one/./two/three/"
 -- Normalized "/one/two/three"
 --
 -- A path that goes "up" a directory:
 --
--- >>> normalizePath (T.pack "/one/two/three/../four")
+-- >>> normalizePath "/one/two/three/../four"
 -- Normalized "/one/two/four"
 --
 -- A path that goes up too far:
 --
--- >>> normalizePath (T.pack "/one/../../two/three")
+-- >>> normalizePath "/one/../../two/three"
 -- Invalid
 --
 -- The root path is a normalized path:
 --
--- >>> normalizePath (T.pack "/")
+-- >>> normalizePath "/"
 -- AlreadyNormal
 --
--- The empty string is not a valid path:
+-- The empty string is not a valid path (because a path
+-- must begin with a slash):
 --
--- >>> normalizePath (T.pack "")
+-- >>> normalizePath ""
 -- Invalid
 
 normalizePath :: Text -> NormalizationResult Text
@@ -118,22 +122,22 @@ normalizePath path
 -- |
 -- A path that's already in normal form:
 --
--- >>> normalizeSegmentList [T.pack "one", T.pack "two", T.pack "three"]
+-- >>> normalizeSegmentList ["one", "two", "three"]
 -- AlreadyNormal
 --
 -- A path that contains empty segments:
 --
--- >>> normalizeSegmentList [T.pack "", T.pack "one", T.pack ".", T.pack "two", T.pack "three"]
+-- >>> normalizeSegmentList ["", "one", ".", "two", "three"]
 -- Normalized ["one","two","three"]
 --
 -- A path that goes "up" a directory:
 --
--- >>> normalizeSegmentList [T.pack "one", T.pack "two", T.pack "three", T.pack "..", T.pack "four"]
+-- >>> normalizeSegmentList ["one", "two", "three", "..", "four"]
 -- Normalized ["one","two","four"]
 --
 -- A path that goes up too far:
 --
--- >>> normalizeSegmentList [T.pack "one", T.pack "..", T.pack "..", T.pack "two", T.pack "three"]
+-- >>> normalizeSegmentList ["one", "..", "..", "two", "three"]
 -- Invalid
 --
 -- The empty string is a normalized path:
