@@ -31,10 +31,10 @@ import Data.ByteString (ByteString)
 import Data.Text       (Text)
 import Prelude         ((+), (-))
 
-import qualified Data.Text          as T
-import qualified Data.Text.Encoding as T
-import qualified Data.Text.Lazy     as LT
-import qualified Data.Text.Lazy.Encoding     as LT
+import qualified Data.Text               as T
+import qualified Data.Text.Encoding      as T
+import qualified Data.Text.Lazy          as LT
+import qualified Data.Text.Lazy.Encoding as LT
 
 slash, dot, up :: Text
 slash = T.pack "/"
