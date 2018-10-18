@@ -31,8 +31,8 @@ main =
 
         Scotty.get (Scotty.capture "/:word") $
           do
-            beam <- param (Data.Text.Lazy.pack "word")
-            Scotty.html $ mconcat
+            beam <- Scotty.param (Data.Text.Lazy.pack "word")
+            Scotty.html $ fold
                 [ Data.Text.Lazy.pack "<h1>Scotty, "
                 , beam
                 , Data.Text.Lazy.pack " me up!</h1>"
